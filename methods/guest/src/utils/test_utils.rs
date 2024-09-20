@@ -1,4 +1,4 @@
-use elliptic_curve::sec1::FromEncodedPoint;
+use k256::elliptic_curve::sec1::FromEncodedPoint;
 use k256::{AffinePoint, EncodedPoint};
 use num_bigint::BigUint;
 use num_traits::Num;

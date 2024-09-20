@@ -1,6 +1,5 @@
-use elliptic_curve::PrimeField;
+use k256::elliptic_curve::PrimeField;
 use k256::Scalar;
-
 pub fn scalar_from_hex(hex_string: &str) -> Result<Scalar, String> {
     let hex_string = hex_string.trim_start_matches("0x");
 

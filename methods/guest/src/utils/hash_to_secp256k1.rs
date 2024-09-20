@@ -1,5 +1,5 @@
-use elliptic_curve::AffinePoint;
 use k256::elliptic_curve::hash2curve::{ExpandMsgXmd, GroupDigest};
+use k256::elliptic_curve::AffinePoint;
 use k256::Secp256k1;
 use sha2::Sha256;
 
