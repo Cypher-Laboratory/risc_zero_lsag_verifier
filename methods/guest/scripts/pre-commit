@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Run cargo clippy to ensure code is clean
+cargo clippy --all-targets --all-features -- -D warnings
+if [ $? -ne 0 ]; then
+    echo "Clippy failed. Please fix the errors before committing."
+    exit 1
+fi
+
+# run cargo fmt to format the code
+cargo fmt
+if [ $? -ne 0 ]; then
+    echo "Cargo fmt failed. Please fix the errors before committing."
+    exit 1
+fi
+
+
+# Run cargo fmt --check to ensure code is properly formatted
+cargo fmt -- --check
+if [ $? -ne 0 ]; then
+    echo "Code is not properly formatted. Please run 'cargo fmt' to format your code."
+    exit 1
+fi
+
+# run cargo test to ensure all tests pass
+cargo test
+
+# Run cargo build to ensure the project builds successfully
+cargo build
+if [ $? -ne 0 ]; then
+    echo "Build failed. Please fix the errors before committing."
+    exit 1
+fi
+
+# If both commands succeed, allow the commit to proceed
+exit 0
