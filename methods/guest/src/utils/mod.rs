@@ -5,4 +5,5 @@ pub mod scalar_from_hex;
 pub mod scalar_to_string;
 pub mod serialize_point;
 pub mod serialize_ring;
+pub mod sha256;
 pub mod test_utils;

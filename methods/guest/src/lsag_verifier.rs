@@ -1,9 +1,9 @@
 use core::str;
 
-use crate::utils::keccak256::keccak_256;
 use crate::utils::scalar_from_hex::scalar_from_hex;
 use crate::utils::serialize_point::{deserialize_point, serialize_point};
 use crate::utils::serialize_ring::{deserialize_ring, serialize_ring};
+use crate::utils::sha256::sha_256;
 use crate::utils::{hash_to_secp256k1::hash_to_secp256k1, hex_to_decimal::hex_to_decimal};
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -57,7 +57,7 @@ pub fn compute_c(
             ((mapped * params.previous_r) + (params.key_image * params.previous_c)).to_affine(),
         );
 
-    let hash = keccak_256(&[hash_content]);
+    let hash = sha_256(&[hash_content]);
 
     scalar_from_hex(&hash).unwrap() // todo: compute mod order: % curve_order;
 }
@@ -84,7 +84,7 @@ pub fn verify_b64_lsag(b64_signature: String) -> bool {
 
     // Convert the string to json
     let json = convert_string_to_json(decoded_string); // Assume the conversion returns a Result
-
+    dbg!(&json);
     // Deserialize the ring (handle Result)
     let ring_points = match deserialize_ring(&json.ring) {
         Ok(points) => points,
@@ -105,7 +105,13 @@ pub fn verify_b64_lsag(b64_signature: String) -> bool {
     let responses: Vec<Scalar> = json
         .responses
         .iter()
-        .map(|response| scalar_from_hex(response).unwrap())
+        .map(|response| match scalar_from_hex(response) {
+            Ok(scalar) => scalar,
+            Err(e) => {
+                eprintln!("Error parsing scalar from hex '{}': {}", response, e);
+                panic!("Failed to parse scalar");
+            }
+        })
         .collect();
 
     // return the result of the verification
@@ -140,7 +146,7 @@ pub fn verify_lsag(
     if ring.len() != responses.len() {
         panic!("Ring and responses must have the same length");
     }
-    let message_digest = keccak_256(&[message]);
+    let message_digest = sha_256(&[message]);
 
     let serialized_ring = serialize_ring(ring);
 

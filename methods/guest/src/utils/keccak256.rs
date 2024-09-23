@@ -1,6 +1,5 @@
 use hex;
 use sha3::{Digest, Keccak256};
-
 /// The keccak_256 function
 /// concatenates the input strings and returns the Keccak256 hash as a hexadecimal string
 pub fn keccak_256(input: &[String]) -> String {
