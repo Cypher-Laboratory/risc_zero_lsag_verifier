@@ -22,7 +22,8 @@ fn main() -> std::io::Result<()> {
     let prove_info = prover.prove(env, LSAG_VERIFIER_ELF).unwrap();
     let receipt = prove_info.receipt;
 
-    let output: bool = receipt.journal.decode().unwrap();
+    let output: [u8; 32] = receipt.journal.decode().unwrap();
+    dbg!(&output);
     let verification = receipt.verify(LSAG_VERIFIER_ID).unwrap();
 
     let end_time = Utc::now();

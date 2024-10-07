@@ -1,4 +1,7 @@
 use core::str;
+use ethabi::{encode, Token};
+use k256::elliptic_curve::point::AffineCoordinates;
+use sha2::{Digest, Sha256};
 
 use crate::utils::scalar_from_hex::scalar_from_hex;
 use crate::utils::serialize_point::{deserialize_point, serialize_point};
@@ -30,7 +33,13 @@ pub struct Params {
     pub linkability_flag: Option<String>,
     pub key_image: AffinePoint,
 }
-
+#[derive(Debug)]
+pub struct MinimalLsag {
+    pub message: String,
+    pub key_image: AffinePoint,
+    pub linkability_flag: Option<String>,
+    pub ring: Vec<AffinePoint>,
+}
 /// Computes the 'cee' value based on the provided parameters
 pub fn compute_c(
     ring: &[AffinePoint], // todo: ensure ring is sorted
@@ -70,7 +79,7 @@ fn convert_string_to_json(json_str: &str) -> StringifiedLsag {
 
 /// Verify a base64 encoded LSAG signature.
 /// Converts a base64 encoded LSAG signature and verifies it.
-pub fn verify_b64_lsag(b64_signature: String) -> bool {
+pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
     // Decode the base64 string
     let decoded_bytes = general_purpose::STANDARD
         .decode(b64_signature.as_bytes())
@@ -84,13 +93,11 @@ pub fn verify_b64_lsag(b64_signature: String) -> bool {
 
     // Convert the string to json
     let json = convert_string_to_json(decoded_string); // Assume the conversion returns a Result
-    dbg!(&json);
-    // Deserialize the ring (handle Result)
     let ring_points = match deserialize_ring(&json.ring) {
         Ok(points) => points,
         Err(e) => {
             println!("Error deserializing ring: {}", e);
-            return false; // Return false if deserialization fails
+            return None; // Return false if deserialization fails
         }
     };
 
@@ -98,7 +105,7 @@ pub fn verify_b64_lsag(b64_signature: String) -> bool {
         Ok(point) => point,
         Err(e) => {
             println!("Error deserializing keyImage: {}", e);
-            return false; // Return false if deserialization fails
+            return None; // Return false if deserialization fails
         }
     };
 
@@ -114,15 +121,26 @@ pub fn verify_b64_lsag(b64_signature: String) -> bool {
         })
         .collect();
 
-    // return the result of the verification
-    verify_lsag(
+    let is_valid = verify_lsag(
         &ring_points,
         json.message.clone(),
-        scalar_from_hex(&json.c).unwrap(),
+        scalar_from_hex(&json.c).ok()?,
         &responses,
         key_image,
         Some(json.linkabilityFlag.clone()),
-    )
+    );
+
+    if is_valid {
+        let hash = to_minimal_lsag_digest(
+            &ring_points,
+            json.message.clone(),
+            key_image,
+            Some(json.linkabilityFlag.clone()),
+        );
+        Some(hash)
+    } else {
+        None // Return None if the signature is invalid
+    }
 }
 
 /// Verifies a ring signature.
@@ -176,6 +194,48 @@ pub fn verify_lsag(
 
     // Return true if c0 == c0'
     c0 == last_computed_c
+}
+
+pub fn to_minimal_lsag_digest(
+    ring: &[AffinePoint],
+    message: String,
+    key_image: AffinePoint,
+    linkability_flag: Option<String>,
+) -> [u8; 32] {
+    let mini_lsag = MinimalLsag {
+        message: message.clone(),
+        linkability_flag: linkability_flag.clone(),
+        key_image,
+        ring: ring.to_vec(),
+    };
+    let encoded = abi_encode_minimal_lsag(&mini_lsag);
+    let mut hasher = Sha256::new();
+    hasher.update(&encoded);
+    let result = hasher.finalize();
+    result.into()
+}
+
+fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
+    let tokens = vec![
+        Token::String(lsag.message.clone()),
+        Token::String(lsag.linkability_flag.clone().unwrap_or_default()),
+        Token::FixedBytes(affine_point_to_bytes(&lsag.key_image)),
+        Token::Array(
+            lsag.ring
+                .iter()
+                .map(|point| Token::FixedBytes(affine_point_to_bytes(point)))
+                .collect(),
+        ),
+    ];
+
+    encode(&tokens)
+}
+
+fn affine_point_to_bytes(point: &AffinePoint) -> Vec<u8> {
+    // Similar to key_image_to_bytes, but for a single point in the ring
+    let mut bytes = Vec::new();
+    bytes.extend_from_slice(&point.x());
+    bytes
 }
 
 #[cfg(test)]
