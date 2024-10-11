@@ -24,8 +24,8 @@ use k256::{AffinePoint, Scalar};
 pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
     let decoded_bytes = general_purpose::STANDARD
         .decode(b64_signature.as_bytes())
-        .unwrap();
-    let decoded_string = str::from_utf8(&decoded_bytes).unwrap();
+        .ok()?;
+    let decoded_string = str::from_utf8(&decoded_bytes).ok()?;
 
     let json = convert_string_to_json(decoded_string);
     let ring_points = deserialize_ring(&json.ring).ok()?;
@@ -34,13 +34,13 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
     let responses: Vec<Scalar> = json
         .responses
         .iter()
-        .map(|response| scalar_from_hex(response).unwrap())
+        .filter_map(|response| scalar_from_hex(response).ok())
         .collect();
 
     let is_valid = verify_lsag(
         &ring_points,
         &json.message,
-        scalar_from_hex(&json.c).unwrap(),
+        scalar_from_hex(&json.c).ok()?,
         &responses,
         key_image,
         Some(&json.linkabilityFlag),
@@ -49,16 +49,15 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
     if is_valid {
         let hash = to_minimal_lsag_digest(
             &ring_points,
-            json.message,
+            &json.message,
             key_image,
-            Some(json.linkabilityFlag),
+            Some(json.linkabilityFlag).as_deref(),
         );
         Some(hash)
     } else {
         None
     }
 }
-
 /// Verifies a ring signature (LSAG).
 ///
 /// # Arguments
@@ -73,14 +72,14 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
 /// * `true` if the signature is valid, `false` otherwise.
 pub fn verify_lsag(
     ring: &[AffinePoint],
-    message: &String,
+    message: &str,
     c0: Scalar,
     responses: &[Scalar],
     key_image: AffinePoint,
-    linkability_flag: Option<&String>,
+    linkability_flag: Option<&str>,
 ) -> bool {
     if ring.len() != responses.len() {
-        panic!("Ring and responses must have the same length");
+        return false;
     }
 
     let message_digest = sha_256(&[message]);
