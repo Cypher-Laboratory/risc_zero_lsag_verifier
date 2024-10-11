@@ -3,8 +3,8 @@ use sha2::{Digest, Sha256};
 
 /// SHA256 function
 /// concatenates the input strings and returns the Keccak256 hash as a hexadecimal string
-pub fn sha_256(input: &[String]) -> String {
-    let serialized: String = input.iter().map(|x| x.to_string()).collect();
+pub fn sha_256(input: &[&str]) -> String {
+    let serialized = input.join("");
     let mut hasher = Sha256::new();
     hasher.update(serialized.as_bytes());
     let result = hasher.finalize();

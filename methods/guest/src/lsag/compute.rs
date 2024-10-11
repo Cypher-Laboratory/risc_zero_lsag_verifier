@@ -1,28 +1,30 @@
 use crate::utils::{hash_to_secp256k1, hex_to_decimal, scalar_from_hex, serialize_point, sha_256};
 use k256::{AffinePoint, Scalar};
 
-pub struct Params {
+pub struct Params<'a> {
     pub index: usize,
     pub previous_r: Scalar,
     pub previous_c: Scalar,
     pub previous_index: usize,
     pub key_image: AffinePoint,
-    pub linkability_flag: Option<String>,
+    pub linkability_flag: Option<&'a String>,
 }
 
-pub fn compute_c(
+pub fn compute_c<'a>(
     ring: &[AffinePoint],
     serialized_ring: &String,
     message_digest: &String,
-    params: &Params,
+    params: &Params<'a>,
 ) -> Scalar {
     let g = AffinePoint::GENERATOR;
 
     let point =
         ((g * params.previous_r) + (ring[params.previous_index] * params.previous_c)).to_affine();
+
+    // Borrowing linkability_flag without cloning
     let mapped = hash_to_secp256k1(
         serialize_point(ring[params.previous_index])
-            + &params.linkability_flag.clone().unwrap_or("".to_string()),
+            + params.linkability_flag.map(|s| s.as_str()).unwrap_or(""),
     );
 
     let hash_content = format!(
@@ -35,6 +37,6 @@ pub fn compute_c(
         )
     );
 
-    let hash = sha_256(&[hash_content]);
+    let hash = sha_256(&[&hash_content]);
     scalar_from_hex(&hash).unwrap()
 }

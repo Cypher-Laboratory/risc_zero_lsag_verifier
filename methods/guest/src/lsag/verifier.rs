@@ -29,7 +29,7 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
 
     let json = convert_string_to_json(decoded_string);
     let ring_points = deserialize_ring(&json.ring).ok()?;
-    let key_image = deserialize_point(json.keyImage.clone()).ok()?;
+    let key_image = deserialize_point(json.keyImage).ok()?;
 
     let responses: Vec<Scalar> = json
         .responses
@@ -39,11 +39,11 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
 
     let is_valid = verify_lsag(
         &ring_points,
-        json.message.clone(),
+        &json.message,
         scalar_from_hex(&json.c).unwrap(),
         &responses,
         key_image,
-        Some(json.linkabilityFlag.clone()),
+        Some(&json.linkabilityFlag),
     );
 
     if is_valid {
@@ -73,11 +73,11 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
 /// * `true` if the signature is valid, `false` otherwise.
 pub fn verify_lsag(
     ring: &[AffinePoint],
-    message: String,
+    message: &String,
     c0: Scalar,
     responses: &[Scalar],
     key_image: AffinePoint,
-    linkability_flag: Option<String>,
+    linkability_flag: Option<&String>,
 ) -> bool {
     if ring.len() != responses.len() {
         panic!("Ring and responses must have the same length");
@@ -94,7 +94,7 @@ pub fn verify_lsag(
             previous_c: last_computed_c,
             previous_index: i,
             key_image,
-            linkability_flag: linkability_flag.clone(),
+            linkability_flag,
         };
 
         last_computed_c = compute_c(ring, &serialized_ring, &message_digest, &params);
