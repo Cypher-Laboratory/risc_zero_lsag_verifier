@@ -27,7 +27,10 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
         .ok()?;
     let decoded_string = str::from_utf8(&decoded_bytes).ok()?;
 
-    let json = convert_string_to_json(decoded_string);
+    let json = match convert_string_to_json(decoded_string) {
+        Ok(json) => json,
+        Err(_) => return None,
+    };
     let ring_points = deserialize_ring(&json.ring).ok()?;
     let key_image = deserialize_point(json.keyImage).ok()?;
 
@@ -95,8 +98,10 @@ pub fn verify_lsag(
             key_image,
             linkability_flag,
         };
-
-        last_computed_c = compute_c(ring, &serialized_ring, &message_digest, &params);
+        match compute_c(ring, &serialized_ring, &message_digest, &params) {
+            Ok(computed_c) => last_computed_c = computed_c,
+            Err(_) => return false, // Return false if compute_c returns an error
+        };
     }
 
     c0 == last_computed_c

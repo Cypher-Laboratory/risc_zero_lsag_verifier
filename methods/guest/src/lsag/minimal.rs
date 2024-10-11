@@ -11,6 +11,7 @@ pub struct MinimalLsag<'a> {
     pub ring: Vec<AffinePoint>,
 }
 
+//TODO use both x and y coordinate
 pub fn to_minimal_lsag_digest<'a>(
     ring: &[AffinePoint],
     message: &str,
@@ -32,8 +33,8 @@ pub fn to_minimal_lsag_digest<'a>(
 
 fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
     let tokens = vec![
-        Token::String(lsag.message.to_string()), // Use to_string() to convert &str to String
-        Token::String(lsag.linkability_flag.unwrap_or_default().to_string()), // Unwrap directly
+        Token::String(lsag.message.to_string()),
+        Token::String(lsag.linkability_flag.unwrap_or_default().to_string()),
         Token::Uint(affine_point_to_uint256(&lsag.key_image)),
         Token::Array(
             lsag.ring
@@ -46,7 +47,6 @@ fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
 }
 
 fn affine_point_to_uint256(point: &AffinePoint) -> U256 {
-    // Assuming `point.x()` returns a `[u8; 32]` representing the x-coordinate
-    let x_bytes = point.x().to_vec(); // Returns a byte array slice directly
-    U256::from_big_endian(&x_bytes) // Use the byte slice without to_vec()
+    let x_bytes = point.x().to_vec();
+    U256::from_big_endian(&x_bytes)
 }

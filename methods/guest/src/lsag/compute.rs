@@ -12,26 +12,30 @@ pub struct Params<'a> {
 
 pub fn compute_c<'a>(
     ring: &[AffinePoint],
-    serialized_ring: &String,
-    message_digest: &String,
+    serialized_ring: &str,
+    message_digest: &str,
     params: &Params<'a>,
-) -> Scalar {
+) -> Result<Scalar, String> {
     let g = AffinePoint::GENERATOR;
     let point =
         ((g * params.previous_r) + (ring[params.previous_index] * params.previous_c)).to_affine();
-    let mapped = hash_to_secp256k1(
-        serialize_point(ring[params.previous_index])
-            + params.linkability_flag.map(|s| s).unwrap_or(""),
+    let serialized_point_and_flag = format!(
+        "{}{}",
+        serialize_point(ring[params.previous_index]),
+        params.linkability_flag.unwrap_or("")
     );
+    let mapped = hash_to_secp256k1(&serialized_point_and_flag)
+        .map_err(|_| "Failed to map to secp256k1 point".to_string())?;
     let hash_content = format!(
         "{}{}{}{}",
         serialized_ring,
-        hex_to_decimal(&message_digest).unwrap(),
+        hex_to_decimal(message_digest)
+            .map_err(|_| "Failed to convert message digest".to_string())?,
         serialize_point(point),
         serialize_point(
             ((mapped * params.previous_r) + (params.key_image * params.previous_c)).to_affine()
         )
     );
     let hash = sha_256(&[&hash_content]);
-    scalar_from_hex(&hash).unwrap()
+    scalar_from_hex(&hash).map_err(|_| "Failed to convert hash to scalar".to_string())
 }
