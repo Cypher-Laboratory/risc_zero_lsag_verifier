@@ -25,13 +25,16 @@ pub fn to_minimal_lsag_digest<'a>(
         ring: ring.to_vec(),
     };
     let encoded = abi_encode_minimal_lsag(&mini_lsag);
-
     let mut hasher = Sha256::new();
     hasher.update(encoded);
     hasher.finalize().into()
 }
 
 fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
+    //set the offset
+    let mut result = vec![0u8; 32];
+    result[31] = 32u8;
+
     let tokens = vec![
         Token::String(lsag.message.to_string()),
         Token::String(lsag.linkability_flag.unwrap_or_default().to_string()),
@@ -43,7 +46,8 @@ fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
                 .collect(),
         ),
     ];
-    encode(&tokens)
+    result.extend(encode(&tokens));
+    result
 }
 
 fn affine_point_to_uint256(point: &AffinePoint) -> U256 {

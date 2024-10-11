@@ -32,7 +32,7 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
         Err(_) => return None,
     };
     let ring_points = deserialize_ring(&json.ring).ok()?;
-    let key_image = deserialize_point(json.keyImage).ok()?;
+    let key_image = deserialize_point(&json.keyImage).ok()?;
 
     let responses: Vec<Scalar> = json
         .responses
@@ -56,6 +56,7 @@ pub fn verify_b64_lsag(b64_signature: String) -> Option<[u8; 32]> {
             key_image,
             Some(json.linkabilityFlag).as_deref(),
         );
+        dbg!(hex::encode(hash));
         Some(hash)
     } else {
         None
@@ -86,7 +87,10 @@ pub fn verify_lsag(
     }
 
     let message_digest = sha_256(&[message]);
-    let serialized_ring = serialize_ring(ring);
+    let serialized_ring = match serialize_ring(ring) {
+        Ok(result) => result,
+        Err(_) => return false, // Return false if there's an error in serializing the ring
+    };
     let mut last_computed_c = c0;
 
     for (i, response) in responses.iter().enumerate() {
