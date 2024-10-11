@@ -12,8 +12,8 @@ pub struct Params {
 
 pub fn compute_c(
     ring: &[AffinePoint],
-    serialized_ring: String,
-    message_digest: String,
+    serialized_ring: &String,
+    message_digest: &String,
     params: &Params,
 ) -> Scalar {
     let g = AffinePoint::GENERATOR;

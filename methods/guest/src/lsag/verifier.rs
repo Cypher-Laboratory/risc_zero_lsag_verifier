@@ -97,12 +97,7 @@ pub fn verify_lsag(
             linkability_flag: linkability_flag.clone(),
         };
 
-        last_computed_c = compute_c(
-            ring,
-            serialized_ring.clone(),
-            message_digest.clone(),
-            &params,
-        );
+        last_computed_c = compute_c(ring, &serialized_ring, &message_digest, &params);
     }
 
     c0 == last_computed_c
