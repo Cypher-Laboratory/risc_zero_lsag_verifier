@@ -17,16 +17,12 @@ pub fn compute_c<'a>(
     params: &Params<'a>,
 ) -> Scalar {
     let g = AffinePoint::GENERATOR;
-
     let point =
         ((g * params.previous_r) + (ring[params.previous_index] * params.previous_c)).to_affine();
-
-    // Borrowing linkability_flag without cloning
     let mapped = hash_to_secp256k1(
         serialize_point(ring[params.previous_index])
             + params.linkability_flag.map(|s| s.as_str()).unwrap_or(""),
     );
-
     let hash_content = format!(
         "{}{}{}{}",
         serialized_ring,
@@ -36,7 +32,6 @@ pub fn compute_c<'a>(
             ((mapped * params.previous_r) + (params.key_image * params.previous_c)).to_affine()
         )
     );
-
     let hash = sha_256(&[&hash_content]);
     scalar_from_hex(&hash).unwrap()
 }
