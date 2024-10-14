@@ -7,5 +7,5 @@ fn main() {
     if result == None {
         panic!("ring signature is not valid")
     }
-    env::commit(&Some(result));
+    env::commit(&result.unwrap());
 }
