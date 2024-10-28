@@ -18,20 +18,18 @@
 
 use alloy::{
     network::EthereumWallet, providers::ProviderBuilder, signers::local::PrivateKeySigner,
-    sol_types::SolValue,
 };
 use alloy_primitives::{Address, U256};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::Parser;
-use methods::IS_EVEN_ELF;
+use methods::LSAG_VERIFIER_ELF;
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;
 
-// `IEvenNumber` interface automatically generated via the alloy `sol!` macro.
 alloy::sol!(
     #[sol(rpc, all_derives)]
-    "../contracts/IEvenNumber.sol"
+    "../contracts/ILsagVerifier.sol"
 );
 
 /// Arguments of the publisher CLI.
@@ -53,10 +51,6 @@ struct Args {
     /// Application's contract address on Ethereum
     #[clap(long)]
     contract: Address,
-
-    /// The input to provide to the guest binary
-    #[clap(short, long)]
-    input: U256,
 }
 
 fn main() -> Result<()> {
@@ -71,45 +65,73 @@ fn main() -> Result<()> {
         .wallet(wallet)
         .on_http(args.rpc_url);
 
-    // ABI encode input: Before sending the proof request to the Bonsai proving service,
-    // the input number is ABI-encoded to match the format expected by the guest code running in the zkVM.
-    let input = args.input.abi_encode();
+    let input = "eyJtZXNzYWdlIjoiSGVsbG8gV29ybGQiLCJyaW5nIjpbIjAyMjE4NjljYTNhZTMzYmUzYTczMjdlOWEwMjcyMjAzYWZhNzJjNTJhNTQ2MGNlYjlmNGE1MDkzMDUzMWJkOTI2YSIsIjAzNDI4ZTAyMGYxODRiNzBjYTkzMWE5MTA4NWFjMWMyMzM4MjdhNDFkODUxNmE0YjY0NTVlMjIxZTYzN2M0ZGUwZiIsIjAzNDM4ZmJmMzc3NmNjMjRlMjUzNTgyMjU0NGYxNGQ3YjA1N2Q4OTU3YzcyNjc2MDE4MDA1MmNkYTdiOGJhNmM4MyIsIjAzNTBjMWJkNjRjMzA4N2Y2NWY0ODE3MTdlZTRhNWJkZmJiYTRmMDYwMzE0OTkzZjFlMTVjMGRiMjk3NDhiOGRjMiJdLCJjIjoiM2M3ZDBhYzE4YjBlYWU4N2M1OTFjMGM5ZWRkOWE3ZDU3YjI5ZWUxZDhiNzZlYTFjOGM1NjAxMDQ3MGMwZDViMiIsInJlc3BvbnNlcyI6WyIxOWUzNGNjOTc5Y2E1YWMzYTk2MThkMGNlZThmYjdmNzRlMmY4MzA5MmY2ZDZmOTUyZTA3OWYxMzY1MmNlNjM2IiwiYjRkZGE5ZTc4YzA4OTliYjFjYmNkYTVjMjhiYWRiZjYwYWIzMDc1N2MyZjVhMWIxNWQwZDliNmQ1MzdhMTMwMSIsIjJhY2Q4ZWIzMzZhZjU5YzIwMTVhNDljMGJlMWZhZmE3Yzk0ODRmYWQ4YmY3MmFmYjZjYmIwYzgzMDhhOGUxODUiLCI1Y2IzNWY3OWVmYzBmODEwYTI0NTMxYjU0YWM0NThiNjZkMTZlNzNhMTdjOWEyY2IxYTkyN2QzYzI1YTNkMDY4Il0sImN1cnZlIjoie1wiY3VydmVcIjpcIlNFQ1AyNTZLMVwifSIsImtleUltYWdlIjoiMDJlN2ZmMzQ5MGVlN2RiMzM3NTBmZTlhNzA5MWQ4MmRjYTk1MmU2ZDIyYTdmZDRkZjk3ZDBjYmY4ZjdjYjQ2YWQyIiwibGlua2FiaWxpdHlGbGFnIjoibGlua2FiaWxpdHkiLCJjb25maWciOnsiaGFzaCI6InNoYTI1NiJ9fQ==";
 
-    let env = ExecutorEnv::builder().write_slice(&input).build()?;
+    let env = ExecutorEnv::builder().write(&input).unwrap().build()?;
 
     let receipt = default_prover()
         .prove_with_ctx(
             env,
             &VerifierContext::default(),
-            IS_EVEN_ELF,
+            LSAG_VERIFIER_ELF,
             &ProverOpts::groth16(),
         )?
         .receipt;
 
-    // Encode the seal with the selector.
     let seal = encode_seal(&receipt)?;
-
-    // Extract the journal from the receipt.
     let journal = receipt.journal.bytes.clone();
+    let partial_ring_signature = ILsagVerifier::PartialRingSignatureData {
+        message: "Hello World".to_string(),
+        linkabilityFlag: "linkability".to_string(),
+        ring: vec![
+            U256::from_str_radix(
+                "15164162595175125008547705889856181828932143716710538299042410382956573856362",
+                10,
+            )
+            .unwrap(),
+            U256::from_str_radix(
+                "30103554500144535254965021336757008479704861502777924021458799636567575289359",
+                10,
+            )
+            .unwrap(),
+            U256::from_str_radix(
+                "30558939714202291090863029727820829993227403204286654734430544819396481281155",
+                10,
+            )
+            .unwrap(),
+            U256::from_str_radix(
+                "36527336516757141982692764653028488263347504639791543174831352430519439297986",
+                10,
+            )
+            .unwrap(),
+        ],
+        keyImage: U256::from_str_radix(
+            "104935176822411412320960095276207223758135305498561321901980579976923376282322",
+            10,
+        )
+        .unwrap(),
+    };
 
-    // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
-    // the verified number. This ensures that the number being submitted to the blockchain matches
-    // the number that was verified off-chain.
-    let x = U256::abi_decode(&journal, true).context("decoding journal data")?;
+    let contract = ILsagVerifier::new(args.contract, provider);
+    let call_builder = contract.partialLsagVerification(
+        seal.clone().into(),
+        journal.clone().into(),
+        partial_ring_signature.clone(),
+    );
 
-    // Construct function call: Using the IEvenNumber interface, the application constructs
-    // the ABI-encoded function call for the set function of the EvenNumber contract.
-    // This call includes the verified number, the post-state digest, and the seal (proof).
-    let contract = IEvenNumber::new(args.contract, provider);
-    let call_builder = contract.set(x, seal.into());
-
-    // Initialize the async runtime environment to handle the transaction sending.
+    //set up async runtime with tokio
     let runtime = tokio::runtime::Runtime::new()?;
-
-    // Send transaction: Finally, send the transaction to the Ethereum blockchain,
-    // effectively calling the set function of the EvenNumber contract with the verified number and proof.
-    let pending_tx = runtime.block_on(call_builder.send())?;
-    runtime.block_on(pending_tx.get_receipt())?;
-
+    runtime.block_on(async {
+        match call_builder.call().await {
+            Ok(value) => {
+                println!("Raw return value: {:?}", value);
+                Ok(value)
+            }
+            Err(e) => {
+                println!("Error details: {:?}", e);
+                Err(e)
+            }
+        }
+    })?;
     Ok(())
 }

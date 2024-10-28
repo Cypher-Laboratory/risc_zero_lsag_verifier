@@ -4,15 +4,30 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "is-even"
-path = "src/bin/is_even.rs"
+name = "lsag_verifier"
+path = "src/bin/verifier.rs"
 
 [workspace]
 
 [dependencies]
+risc0-zkvm = { version = "1.1", default-features = false, features=["std"] }
+sha2 = "0.10.8"
+k256 = {version ="0.13.3", features=["hash2curve", "expose-field"]}
+hex = "0.4"
+num-bigint = "0.4"
+num-traits = "0.2"
+regex = "1.10.6"
+base64 = "0.22.1"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+ethabi = "18.0.0"
 alloy-primitives = { version = "=0.8.3", default-features = false, features = ["rlp", "serde", "std"] }
 alloy-sol-types = { version = "=0.8.3" }
-risc0-zkvm = { version = "1.1", default-features = false, features = ['std'] }
+
+[patch.crates-io]
+crypto-bigint = { git = "https://github.com/risc0/RustCrypto-crypto-bigint", tag = "v0.5.5-risczero.0" }
+k256 = { git = "https://github.com/risc0/RustCrypto-elliptic-curves", tag = "k256/v0.13.3-risczero.0"} 
+sha2 = { git = "https://github.com/risc0/RustCrypto-hashes", tag = "sha2-v0.10.8-risczero.0" }
 
 [profile.release]
 lto = "thin"
