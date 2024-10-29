@@ -8,30 +8,16 @@ interface ILsagVerifier {
     }
 
     struct RingSignatureData {
+        string message;
+        string linkabilityFlag;
+        Point keyImage;
         Point[] ring;
-        string message;
-        string keyImage;
-        string linkabilityFlag;
     }
 
-    struct PartialRingSignatureData {
-        string message;
-        string linkabilityFlag;
-        uint256 keyImage;
-        uint256[] ring;
-    }
-
+    // verify a lsag
     function verifyRs(
         bytes calldata seal,
         bytes calldata journal,
         RingSignatureData memory _ringSignatureData
     ) external view returns (RingSignatureData memory);
-
-    // verify a LSAG
-    // tempo function, the verification of the ring is only based on the X-coord
-    function partialLsagVerification(
-        bytes calldata seal,
-        bytes calldata journal,
-        PartialRingSignatureData memory _ringSignatureData
-    ) external view returns (PartialRingSignatureData memory);
 }

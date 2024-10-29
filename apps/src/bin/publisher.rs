@@ -80,43 +80,77 @@ fn main() -> Result<()> {
 
     let seal = encode_seal(&receipt)?;
     let journal = receipt.journal.bytes.clone();
-    let partial_ring_signature = ILsagVerifier::PartialRingSignatureData {
+    let ring_signature = ILsagVerifier::RingSignatureData {
         message: "Hello World".to_string(),
         linkabilityFlag: "linkability".to_string(),
         ring: vec![
-            U256::from_str_radix(
-                "15164162595175125008547705889856181828932143716710538299042410382956573856362",
-                10,
-            )
-            .unwrap(),
-            U256::from_str_radix(
-                "30103554500144535254965021336757008479704861502777924021458799636567575289359",
-                10,
-            )
-            .unwrap(),
-            U256::from_str_radix(
-                "30558939714202291090863029727820829993227403204286654734430544819396481281155",
-                10,
-            )
-            .unwrap(),
-            U256::from_str_radix(
-                "36527336516757141982692764653028488263347504639791543174831352430519439297986",
-                10,
-            )
-            .unwrap(),
+            ILsagVerifier::Point {
+                x: U256::from_str_radix(
+                    "21869ca3ae33be3a7327e9a0272203afa72c52a5460ceb9f4a50930531bd926a",
+                    16,
+                )
+                .unwrap(),
+                y: U256::from_str_radix(
+                    "2c9535b5f71409cf334b639de2d39074ea35c3057857e32ca5487f5d3c68d982",
+                    16,
+                )
+                .unwrap(),
+            },
+            ILsagVerifier::Point {
+                x: U256::from_str_radix(
+                    "428e020f184b70ca931a91085ac1c233827a41d8516a4b6455e221e637c4de0f",
+                    16,
+                )
+                .unwrap(),
+                y: U256::from_str_radix(
+                    "732a3d83f31b7fa512cda0ccd72e747559066d005f9f9d1660f238d1b346ae85",
+                    16,
+                )
+                .unwrap(),
+            },
+            ILsagVerifier::Point {
+                x: U256::from_str_radix(
+                    "438fbf3776cc24e2535822544f14d7b057d8957c726760180052cda7b8ba6c83",
+                    16,
+                )
+                .unwrap(),
+                y: U256::from_str_radix(
+                    "678be57a16f69979248530cc00c357af31e2c89e62c18a2f562174b9976d6e5f",
+                    16,
+                )
+                .unwrap(),
+            },
+            ILsagVerifier::Point {
+                x: U256::from_str_radix(
+                    "50c1bd64c3087f65f481717ee4a5bdfbba4f060314993f1e15c0db29748b8dc2",
+                    16,
+                )
+                .unwrap(),
+                y: U256::from_str_radix(
+                    "21300f258285169c801c3a977fbb303ccac4a0a8513f166878bd229f8c9b658f",
+                    16,
+                )
+                .unwrap(),
+            },
         ],
-        keyImage: U256::from_str_radix(
-            "104935176822411412320960095276207223758135305498561321901980579976923376282322",
-            10,
-        )
-        .unwrap(),
+        keyImage: ILsagVerifier::Point {
+            x: U256::from_str_radix(
+                "e7ff3490ee7db33750fe9a7091d82dca952e6d22a7fd4df97d0cbf8f7cb46ad2",
+                16,
+            )
+            .unwrap(),
+            y: U256::from_str_radix(
+                "027c6ce97078f8bd89ed755f7bc42a32d73de9826a9c4eb1db51344cd0839c30",
+                16,
+            )
+            .unwrap(),
+        },
     };
-
     let contract = ILsagVerifier::new(args.contract, provider);
-    let call_builder = contract.partialLsagVerification(
+    let call_builder = contract.verifyRs(
         seal.clone().into(),
         journal.clone().into(),
-        partial_ring_signature.clone(),
+        ring_signature.clone(),
     );
 
     //set up async runtime with tokio

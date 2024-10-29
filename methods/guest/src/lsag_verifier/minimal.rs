@@ -1,7 +1,14 @@
 use ethabi::ethereum_types::U256;
 use ethabi::{encode, Token};
-use k256::{elliptic_curve::point::AffineCoordinates, AffinePoint};
+use k256::{
+    elliptic_curve::point::AffineCoordinates, elliptic_curve::sec1::ToEncodedPoint, AffinePoint,
+};
 use sha2::{Digest, Sha256};
+
+struct PointCoordinates {
+    x: U256,
+    y: U256,
+}
 
 #[derive(Debug)]
 pub struct MinimalLsag<'a> {
@@ -35,22 +42,41 @@ fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
     let mut result = vec![0u8; 32];
     result[31] = 32u8;
 
+    // Convert key_image to point coordinates
+    let key_image_coords = affine_point_to_coordinates(&lsag.key_image);
+
+    // Convert ring points to array of point coordinates
+    let ring_points: Vec<Token> = lsag
+        .ring
+        .iter()
+        .map(|point| {
+            let coords = affine_point_to_coordinates(point);
+            Token::Tuple(vec![Token::Uint(coords.x), Token::Uint(coords.y)])
+        })
+        .collect();
+
     let tokens = vec![
         Token::String(lsag.message.to_string()),
         Token::String(lsag.linkability_flag.unwrap_or_default().to_string()),
-        Token::Uint(affine_point_to_uint256(&lsag.key_image)),
-        Token::Array(
-            lsag.ring
-                .iter()
-                .map(|point| Token::Uint(affine_point_to_uint256(point)))
-                .collect(),
-        ),
+        Token::Tuple(vec![
+            Token::Uint(key_image_coords.x),
+            Token::Uint(key_image_coords.y),
+        ]),
+        Token::Array(ring_points),
     ];
+
     result.extend(encode(&tokens));
     result
 }
 
-fn affine_point_to_uint256(point: &AffinePoint) -> U256 {
-    let x_bytes = point.x().to_vec();
-    U256::from_big_endian(&x_bytes)
+fn affine_point_to_coordinates(point: &AffinePoint) -> PointCoordinates {
+    let encoded = point.to_encoded_point(false);
+
+    let x_bytes = encoded.x().unwrap();
+    let y_bytes = encoded.y().unwrap();
+
+    PointCoordinates {
+        x: U256::from_big_endian(&x_bytes),
+        y: U256::from_big_endian(&y_bytes),
+    }
 }
