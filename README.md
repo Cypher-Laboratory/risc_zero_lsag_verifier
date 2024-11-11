@@ -104,3 +104,10 @@ While this example uses a CLI approach, the verification process is designed to 
 - Custom applications
 
 The core verification logic remains consistent regardless of the integration method, allowing for versatile implementation approaches. 
+
+## Deployed Addresses
+
+| Network       | Contract          | Address                                      |
+|--------------|-------------------|----------------------------------------------|
+| Polygon Amoy | RiscZeroVerifier | 0xD1b512E8d5e80FC52E7609FA70D6068608DA02EF |
+| Polygon Amoy | LSAGVerifier     | 0x43992dC1dec1D4B7936f3c84D8E48e4C09a08513 |
