@@ -1,31 +1,35 @@
-# zkVM Methods
+# zkVM LSAG Verifier Implementation
 
-This directory contains the [zkVM] portion of your [RISC Zero] application.
-This is where you will define one or more [guest programs] to act as a coprocessor to your [on-chain logic].
+This directory contains the core implementation of the LSAG (Linkable Spontaneous Anonymous Group) signature verification logic for the [RISC Zero zkVM].
 
-> In typical use cases, the only code in this directory that you will need to edit is inside [guest/src/bin].
+## Overview
 
+The verifier is implemented using cryptographically optimized libraries specifically chosen to minimize cycle count on the zkVM. This optimization is crucial for efficient proof generation.
 
-### Writing Guest Code
+## Structure
 
-To learn to write code for the zkVM, we recommend [Guest Code 101].
+- **[guest/src/bin/verifier.rs](./guest/src/bin/verifier.rs)**: Main verification logic
+ - Implements LSAG signature verification algorithm
+ - Uses cycle-optimized crypto primitives
+ - Outputs verification results to the journal
 
-Examples of what you can do in the guest can be found in the [RISC Zero examples].
+## Implementation Notes
 
+The verifier leverages:
+- Optimized cryptographic libraries for zkVM
+- Efficient curve operations
+- Minimized cycle count for cost-effective verification
 
-### From Guest Code to Binary File
+## Development
 
-Code in the `methods/guest` directory will be compiled into one or more binaries.
+To modify the verification logic:
+1. Edit the verification code in `guest/src/bin/lasg_verifier`
+3. The build system will automatically handle binary compilation and image ID generation
 
-Build configuration for the methods is included in `methods/build.rs`.
+For more information on zkVM development:
+- [Guest Code 101]
+- [RISC Zero examples]
 
-Each will have a corresponding image ID, which is a hash identifying the program.
-
-
-[zkVM]: https://dev.risczero.com/zkvm
-[RISC Zero]: https://www.risczero.com/
-[guest programs]: https://dev.risczero.com/terminology#guest-program
-[on-chain logic]: ../contracts/
-[guest/src/bin]: ./guest/src/bin/
+[RISC Zero zkVM]: https://dev.risczero.com/zkvm
 [Guest Code 101]: https://dev.risczero.com/zkvm/developer-guide/guest-code-101
 [RISC Zero examples]: https://github.com/risc0/tree/v0.18.0/examples
