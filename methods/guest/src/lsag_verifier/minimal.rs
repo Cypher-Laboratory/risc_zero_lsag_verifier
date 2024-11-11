@@ -18,7 +18,7 @@ pub struct MinimalLsag<'a> {
     pub ring: Vec<AffinePoint>,
 }
 
-//TODO use both x and y coordinate
+// Convert a lsag to a minimal LSAG and return the sha256 digest of the data
 pub fn to_minimal_lsag_digest<'a>(
     ring: &[AffinePoint],
     message: &str,
@@ -37,6 +37,7 @@ pub fn to_minimal_lsag_digest<'a>(
     hasher.finalize().into()
 }
 
+// ABI encode the minimal lsag
 fn abi_encode_minimal_lsag(lsag: &MinimalLsag) -> Vec<u8> {
     //set the offset
     let mut result = vec![0u8; 32];
