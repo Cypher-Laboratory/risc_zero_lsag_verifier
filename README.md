@@ -45,11 +45,11 @@ After installing the dependencies, you can clone and set up the project:
 git clone [your-repo-url]
 cd [your-repo-name]
 
-# Build the Rust components
-cargo build
-
 # Build the Solidity contracts
 forge build
+
+# Build the Rust components
+cargo build
 ```
 
 ## Project Components
