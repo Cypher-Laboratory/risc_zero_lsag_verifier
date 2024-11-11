@@ -42,8 +42,8 @@ After installing the dependencies, you can clone and set up the project:
 
 ```sh
 # Clone the repository
-git clone [your-repo-url]
-cd [your-repo-name]
+git clone https://github.com/Cypher-Laboratory/risc_zero_lsag_verifier.git
+cd risc_zero_lsag_verifier
 
 # Build the Solidity contracts
 forge build
