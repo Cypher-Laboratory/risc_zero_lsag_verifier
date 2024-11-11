@@ -6,9 +6,7 @@ This repository implements an LSAG signature verification system on EVM utilizin
 
 ## Overview
 
-Here is a simplified overview of how the LSAG verification works with RISC Zero and [Bonsai] proving:
-
-![RISC Zero LSAG Verifier Diagram](images/risc0-foundry-template.png)
+Here is a simplified overview of how the LSAG verification works with RISC Zero and Bonsai proving:
 
 1. The LSAG signature and ring member public keys are processed in the RISC Zero zkVM. The publisher app sends an off-chain proof request to the Bonsai proving service.
 2. Bonsai generates the verification result, written to the journal, and a SNARK proof of its correctness.
