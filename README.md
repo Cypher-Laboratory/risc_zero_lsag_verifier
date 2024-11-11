@@ -73,3 +73,34 @@ Located in [apps](./apps/), the publisher:
 - Accepts LSAG signatures for verification
 - Submits proof requests to Bonsai
 - Posts verification results and proofs to the smart contract
+
+  ## Usage
+
+This project provides a boilerplate for LSAG signature verification that can be adapted to various use cases (CLI, backend services, APIs, etc.).
+
+### Overall Process
+
+1. **Signature Creation**
+  - Using TypeScript LSAG [implementation](https://docs.alicesring.org/docs/LSAG/LSAG-ts) in your frontend/application
+  - Generate a ring signature
+  - Encode the resulting signature in base64 format
+
+2. **Verification Request**
+  - Pass the base64-encoded signature to the verification service
+  - Provider either via CLI interface or any other integration point
+  - Include the ring members' public keys along with the signature
+
+3. **Result Processing**
+  - The system verifies the signature via RISC Zero
+  - Returns proof of valid/invalid signature
+  - Results can be verified on-chain and then used for further application logic
+
+### Integration Notes
+While this example uses a CLI approach, the verification process is designed to be flexible and can be integrated into:
+- Web backends
+- REST APIs
+- Blockchain indexers
+- Smart contract systems
+- Custom applications
+
+The core verification logic remains consistent regardless of the integration method, allowing for versatile implementation approaches. 
