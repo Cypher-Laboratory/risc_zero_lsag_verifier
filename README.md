@@ -109,5 +109,14 @@ The core verification logic remains consistent regardless of the integration met
 
 | Network       | Contract          | Address                                      |
 |--------------|-------------------|----------------------------------------------|
-| Polygon Amoy | RiscZeroVerifier | 0xD1b512E8d5e80FC52E7609FA70D6068608DA02EF |
+| Polygon Mainnet | RiscZeroVerifier | 0xB7A7963d3621435E411518e13E89A10e670D24bA |
+| Polygon Mainnet | LSAGVerifier     | 0xD1b512E8d5e80FC52E7609FA70D6068608DA02EF |
+------------------------
+| Network       | Contract          | Address                                      |
+|--------------|-------------------|----------------------------------------------|
+|Polygon Amoy | RiscZeroVerifier | 0xD1b512E8d5e80FC52E7609FA70D6068608DA02EF |
 | Polygon Amoy | LSAGVerifier     | 0x43992dC1dec1D4B7936f3c84D8E48e4C09a08513 |
+
+
+## Sponsor
+We would like to thank the [Polygon Foundation](https://polygon.technology/) for making this version of Alice’s Ring possible through the grant awarded as part of the [Polygon Community Grants Program](https://polygon.technology/grants) Season 01.
